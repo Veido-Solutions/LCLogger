@@ -20,17 +20,17 @@ public final class LCLogger {
         )
     }
     
-    public func construct(_ message: String = "", type: String = "", filePath: String = #file) {
+    public func construct(_ message: Any? = nil, type: String = "", filePath: String = #file) {
         let place = filePath.getPlace(type: type)
         let m = String(format: "%.3d    INIT \(place.prefix)", getInitCount())
-        let message = m + (message.isEmpty ? "" : " (" + message + ")")
+        let message = m + (message == nil ? "" : " (" + "\(message!)" + ")")
         outputStream.write(message)
     }
     
-    public func destruct(_ message: String = "", type: String = "", filePath: String = #file) {
+    public func destruct(_ message: Any? = nil, type: String = "", filePath: String = #file) {
         let place = filePath.getPlace(type: type)
         let m = String(format: "%.3d  DEINIT \(place.prefix)", getDeinitCount())
-        let message = m + (message.isEmpty ? "" : " (" + message + ")")
+        let message = m + (message == nil ? "" : " (" + "\(message!)" + ")")
         outputStream.write(message)
     }
     
