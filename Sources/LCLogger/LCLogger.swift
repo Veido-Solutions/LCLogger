@@ -48,11 +48,11 @@ public final class LCLogger {
         log(message, type: type, filePath: filePath)
     }
     
-    public func showDebug(on viewController: UIViewController?) {
-        guard let viewController else { return }
-        let vc = LCLoggerViewController()
-        viewController.present(vc, animated: true)
-    }
+//    public func showDebug(on viewController: UIViewController?) {
+//        guard let viewController else { return }
+//        let vc = LCLoggerViewController()
+//        viewController.present(vc, animated: true)
+//    }
 }
 
 // MARK: - Shared
@@ -98,8 +98,8 @@ private struct OutputStream {
         var message = message
         if let prefix { message = "\(prefix) - \(message)" }
         if let suffix { message.append(" \(suffix)") }
-        let logs = LCLogger.logs.value + [message]
-        LCLogger.logs.send(logs)
+//        let logs = LCLogger.logs.value + [message]
+//        LCLogger.logs.send(logs)
 #if DEBUG
         print(message)
 #endif
