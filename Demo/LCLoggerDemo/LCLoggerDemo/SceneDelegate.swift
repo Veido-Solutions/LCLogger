@@ -35,13 +35,13 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         }
         
         for _ in 0...10 {
-            lcLogger.log(randomString(length: Int.random(in: 5...20)))
+            lcLogger.log(randomString(length: Int.random(in: 90...100)))
         }
         
         Timer
-            .publish(every: 1, on: .main, in: .default)
+            .publish(every: 0.3, on: .main, in: .default)
             .autoconnect()
-            .sink { _ in lcLogger.log(randomString(length: Int.random(in: 5...20))) }
+            .sink { _ in lcLogger.log(randomString(length: Int.random(in: 90...100))) }
             .store(in: &subscriptions)
         
         let window = UIWindow(windowScene: windowScene)

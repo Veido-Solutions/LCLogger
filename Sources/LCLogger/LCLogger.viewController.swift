@@ -12,6 +12,8 @@ class LCLoggerViewController: UITableViewController {
     
     private var logs: [String] = []
     
+    private var shouldScrollToBottom = true
+    
     private var subscriptions = Set<AnyCancellable>()
     
     override func viewDidLoad() {
@@ -28,7 +30,7 @@ class LCLoggerViewController: UITableViewController {
                 self.logs = logs
                 tableView.reloadData()
                 let indexPath = IndexPath(row: logs.count - 1, section: 0)
-                guard tableView.indexPathsForVisibleRows?.contains(indexPath) ?? false else { return }
+                guard shouldScrollToBottom else { return }
                 tableView.scrollToRow(at: indexPath, at: .bottom, animated: true)
             }
             .store(in: &subscriptions)
@@ -56,5 +58,10 @@ class LCLoggerViewController: UITableViewController {
         tableView.deselectRow(at: indexPath, animated: true)
         guard indexPath.row < logs.count else { return }
         UIPasteboard.general.string = logs[indexPath.row]
+    }
+    
+    override func scrollViewDidScroll(_ scrollView: UIScrollView) {
+        guard scrollView.isTracking else { return }
+        shouldScrollToBottom = scrollView.frame.height + scrollView.contentOffset.y > scrollView.contentSize.height
     }
 }
