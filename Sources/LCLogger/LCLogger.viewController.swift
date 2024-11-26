@@ -48,6 +48,7 @@ class LCLoggerViewController: UITableViewController {
         guard indexPath.row < logs.count else { return cell }
         cell.textLabel?.text = logs[indexPath.row]
         cell.textLabel?.numberOfLines = 0
+        cell.textLabel?.font = .systemFont(ofSize: 14)
         return cell
     }
 }
