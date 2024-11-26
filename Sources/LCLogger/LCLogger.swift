@@ -1,10 +1,13 @@
-import Foundation
+import UIKit
+import Combine
 
 public protocol LCLoggerErrorProtocol {
     var errorDescription: String { get }
 }
 
 public final class LCLogger {
+    
+    internal static let logs = CurrentValueSubject<[String], Never>([])
     
     public var enabled: Bool = true {
         didSet { outputStream.enabled = enabled }
@@ -43,6 +46,12 @@ public final class LCLogger {
     public func error(_ error: Error, type: String = "", filePath: String = #file) {
         let message = "‼️ Error: \((error as? LCLoggerErrorProtocol)?.errorDescription ?? error.localizedDescription)"
         log(message, type: type, filePath: filePath)
+    }
+    
+    public func showDebug(on viewController: UIViewController?) {
+        guard let viewController else { return }
+        let vc = LCLoggerViewController()
+        viewController.present(vc, animated: true)
     }
 }
 
@@ -86,10 +95,12 @@ private struct OutputStream {
     
     func write(_ message: String) {
         guard enabled else { return }
-#if DEBUG
         var message = message
         if let prefix { message = "\(prefix) - \(message)" }
         if let suffix { message.append(" \(suffix)") }
+        let logs = LCLogger.logs.value + [message]
+        LCLogger.logs.send(logs)
+#if DEBUG
         print(message)
 #endif
     }
