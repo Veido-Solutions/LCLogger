@@ -41,6 +41,7 @@ public final class LCLogger {
         let place = filePath.getPlace(type: type)
         let message = "\(currentTime) ===" + place.smallPrefix + " " + "\(message)" + " ==="
         outputStream.write(message)
+        guard enabled else { return }
         let logs = LCLogger.logs.value + [message]
         LCLogger.logs.send(logs)
     }
