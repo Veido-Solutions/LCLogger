@@ -35,9 +35,16 @@ class LCLoggerViewController: UITableViewController, UISearchBarDelegate {
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: "cell", for: indexPath)
         guard indexPath.row < items.count else { return cell }
-        cell.textLabel?.text = items[indexPath.row]
+        let item = items[indexPath.row]
+        let attributedString = NSMutableAttributedString(string: item, attributes: [.font : UIFont.systemFont(ofSize: 14)])
+        if !searchText.isEmpty {
+            let range = (item as NSString).range(of: searchText, options: .caseInsensitive)
+            if range.location != NSNotFound {
+                attributedString.addAttributes([.font: UIFont.boldSystemFont(ofSize: 14), .foregroundColor: UIColor.systemBlue], range: range)
+            }
+        }
+        cell.textLabel?.attributedText = attributedString
         cell.textLabel?.numberOfLines = 0
-        cell.textLabel?.font = .systemFont(ofSize: 14)
         return cell
     }
     
