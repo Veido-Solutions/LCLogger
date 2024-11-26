@@ -51,4 +51,10 @@ class LCLoggerViewController: UITableViewController {
         cell.textLabel?.font = .systemFont(ofSize: 14)
         return cell
     }
+    
+    override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        tableView.deselectRow(at: indexPath, animated: true)
+        guard indexPath.row < logs.count else { return }
+        UIPasteboard.general.string = logs[indexPath.row]
+    }
 }
