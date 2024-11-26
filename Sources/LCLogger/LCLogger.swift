@@ -51,9 +51,10 @@ public final class LCLogger {
         log(message, type: type, filePath: filePath)
     }
     
+    @available(iOS 14.0, *)
     public func showDebug(on viewController: UIViewController?) {
         guard let viewController else { return }
-        let vc = LCLoggerViewController()
+        let vc = UINavigationController(rootViewController: LCLoggerViewController())
         viewController.present(vc, animated: true)
     }
 }

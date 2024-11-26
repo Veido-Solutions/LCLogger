@@ -8,47 +8,34 @@
 import UIKit
 import Combine
 
-class LCLoggerViewController: UITableViewController {
-    
-    private var logs: [String] = []
+@available(iOS 14.0, *)
+class LCLoggerViewController: UITableViewController, UISearchBarDelegate {
+
+    private var searchBar = UISearchBar()
+
+    @Published private var allItems: [String] = []
+    @Published private var items: [String] = []
+    @Published private var searchText = ""
     
     private var shouldScrollToBottom = true
     
     private var subscriptions = Set<AnyCancellable>()
-    
+
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        tableView.register(UITableViewCell.self, forCellReuseIdentifier: "cell")
-        
-        LCLogger
-            .logs
-            .throttle(for: .seconds(1), scheduler: DispatchQueue.main, latest: true)
-            .receive(on: DispatchQueue.main)
-            .sink { [weak self] logs in
-                guard let self else { return }
-                self.logs = logs
-                tableView.reloadData()
-                let indexPath = IndexPath(row: logs.count - 1, section: 0)
-                guard shouldScrollToBottom else { return }
-                tableView.scrollToRow(at: indexPath, at: .bottom, animated: true)
-            }
-            .store(in: &subscriptions)
+        setupUI()
+        bind()
     }
-    
-    override func viewDidAppear(_ animated: Bool) {
-        super.viewDidAppear(animated)
-        tableView.scrollToRow(at: IndexPath(row: logs.count - 1, section: 0), at: .bottom, animated: true)
-    }
-    
+
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        logs.count
+        items.count
     }
-    
+
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: "cell", for: indexPath)
-        guard indexPath.row < logs.count else { return cell }
-        cell.textLabel?.text = logs[indexPath.row]
+        guard indexPath.row < items.count else { return cell }
+        cell.textLabel?.text = items[indexPath.row]
         cell.textLabel?.numberOfLines = 0
         cell.textLabel?.font = .systemFont(ofSize: 14)
         return cell
@@ -56,12 +43,88 @@ class LCLoggerViewController: UITableViewController {
     
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         tableView.deselectRow(at: indexPath, animated: true)
-        guard indexPath.row < logs.count else { return }
-        UIPasteboard.general.string = logs[indexPath.row]
+        guard indexPath.row < items.count else { return }
+        UIPasteboard.general.string = items[indexPath.row]
     }
     
     override func scrollViewDidScroll(_ scrollView: UIScrollView) {
         guard scrollView.isTracking else { return }
         shouldScrollToBottom = scrollView.frame.height + scrollView.contentOffset.y > scrollView.contentSize.height
+    }
+    
+    override func scrollViewDidEndDecelerating(_ scrollView: UIScrollView) {
+        shouldScrollToBottom = scrollView.frame.height + scrollView.contentOffset.y > scrollView.contentSize.height
+    }
+}
+
+// MARK: - Private Methods
+@available(iOS 14.0, *)
+private extension LCLoggerViewController {
+    func bind() {
+        LCLogger
+            .logs
+            .throttle(for: .seconds(1), scheduler: DispatchQueue.main, latest: true)
+            .assign(to: &$allItems)
+        
+        Publishers
+            .CombineLatest($allItems, $searchText)
+            .sink { [weak self] allItems, searchText in
+                guard let self else { return }
+                items = searchText.isEmpty ? allItems : allItems.filter { $0.lowercased().contains(searchText.lowercased()) }
+            }
+            .store(in: &subscriptions)
+        
+        $items
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] items in
+                guard let self else { return }
+                guard self.shouldScrollToBottom else { return }
+                tableView.reloadData {
+                    guard !self.items.isEmpty else { return }
+                    guard self.shouldScrollToBottom else { return }
+                    let indexPath = IndexPath(row: self.items.count - 1, section: 0)
+                    self.tableView.scrollToRow(at: indexPath, at: .bottom, animated: true)
+                }
+            }
+            .store(in: &subscriptions)
+    }
+    
+    func setupUI() {
+        tableView.register(UITableViewCell.self, forCellReuseIdentifier: "cell")
+        
+        searchBar.delegate = self
+        searchBar.placeholder = "Filter"
+        searchBar.showsCancelButton = true
+        navigationItem.titleView = searchBar
+
+        let closeButton = UIBarButtonItem(title: "Close", style: .plain, target: self, action: #selector(closeTapped))
+        navigationItem.leftBarButtonItem = closeButton
+    }
+    
+    @objc func closeTapped() {
+        dismiss(animated: true)
+    }
+}
+
+// MARK: - UISearchBarDelegate
+@available(iOS 14.0, *)
+extension LCLoggerViewController: UISearchBarDelegate {
+    func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {
+        self.searchText = searchText
+    }
+    
+    func searchBarCancelButtonClicked(_ searchBar: UISearchBar) {
+        shouldScrollToBottom = true
+        searchBar.resignFirstResponder()
+    }
+}
+
+private extension UITableView {
+    func reloadData(_ completion: @escaping () -> Void) {
+        UIView.animate(withDuration: 0, animations: {
+            self.reloadData()
+        }, completion: { _ in
+            completion()
+        })
     }
 }
