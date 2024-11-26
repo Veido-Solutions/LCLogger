@@ -7,6 +7,7 @@
 
 import UIKit
 import LCLogger
+import Combine
 
 let lcLogger = LCLogger.shared()
 
@@ -14,6 +15,7 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
 
     var window: UIWindow?
 
+    private var subscriptions = Set<AnyCancellable>()
 
     func scene(_ scene: UIScene, willConnectTo session: UISceneSession, options connectionOptions: UIScene.ConnectionOptions) {
         // Use this method to optionally configure and attach the UIWindow `window` to the provided UIWindowScene `scene`.
@@ -27,13 +29,27 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         lcLogger.log(2)
         lcLogger.destruct()
         
+        func randomString(length: Int) -> String {
+          let letters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+          return String((0..<length).map{ _ in letters.randomElement()! })
+        }
+        
+        for _ in 0...10 {
+            lcLogger.log(randomString(length: Int.random(in: 5...20)))
+        }
+        
+        Timer
+            .publish(every: 1, on: .main, in: .default)
+            .autoconnect()
+            .sink { _ in lcLogger.log(randomString(length: Int.random(in: 5...20))) }
+            .store(in: &subscriptions)
+        
         let window = UIWindow(windowScene: windowScene)
         let vc = UIViewController()
         vc.view.backgroundColor = .cyan
         window.rootViewController = vc
         window.makeKeyAndVisible()
         self.window = window
-        lcLogger.log(window)
         DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
             lcLogger.showDebug(on: vc)
         }

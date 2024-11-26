@@ -10,6 +10,8 @@ import Combine
 
 class LCLoggerViewController: UITableViewController {
     
+    private var logs: [String] = []
+    
     private var subscriptions = Set<AnyCancellable>()
     
     override func viewDidLoad() {
@@ -21,17 +23,30 @@ class LCLoggerViewController: UITableViewController {
             .logs
             .throttle(for: .seconds(1), scheduler: DispatchQueue.main, latest: true)
             .receive(on: DispatchQueue.main)
-            .sink { [weak self] _ in self?.tableView.reloadData() }
+            .sink { [weak self] logs in
+                guard let self else { return }
+                self.logs = logs
+                tableView.reloadData()
+                let indexPath = IndexPath(row: logs.count - 1, section: 0)
+                guard tableView.indexPathsForVisibleRows?.contains(indexPath) ?? false else { return }
+                tableView.scrollToRow(at: indexPath, at: .bottom, animated: true)
+            }
             .store(in: &subscriptions)
     }
     
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+        tableView.scrollToRow(at: IndexPath(row: logs.count - 1, section: 0), at: .bottom, animated: true)
+    }
+    
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        LCLogger.logs.value.count
+        logs.count
     }
     
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: "cell", for: indexPath)
-        cell.textLabel?.text = LCLogger.logs.value[indexPath.row]
+        guard indexPath.row < logs.count else { return cell }
+        cell.textLabel?.text = logs[indexPath.row]
         cell.textLabel?.numberOfLines = 0
         return cell
     }
