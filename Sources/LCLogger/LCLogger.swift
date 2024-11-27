@@ -7,7 +7,7 @@ public protocol LCLoggerErrorProtocol {
 
 public final class LCLogger {
     
-    internal static let logs = CurrentValueSubject<[String], Never>([])
+    internal static let logs = CurrentValueSubject<[LCLoggerLog], Never>([])
     
     public var enabled: Bool = true {
         didSet { outputStream.enabled = enabled }
@@ -24,25 +24,20 @@ public final class LCLogger {
     }
     
     public func construct(_ message: Any? = nil, type: String = "", filePath: String = #file) {
-        let place = filePath.getPlace(type: type)
-        let m = String(format: "%.3d    INIT \(place.prefix)", getInitCount())
-        let message = m + (message == nil ? "" : " (" + "\(message!)" + ")")
-        outputStream.write(message)
+        let log = LCLoggerLog(message: message, type: type, filePath: filePath, logType: .construct(getInitCount()))
+        outputStream.write(log.formattedMessage)
     }
     
     public func destruct(_ message: Any? = nil, type: String = "", filePath: String = #file) {
-        let place = filePath.getPlace(type: type)
-        let m = String(format: "%.3d  DEINIT \(place.prefix)", getDeinitCount())
-        let message = m + (message == nil ? "" : " (" + "\(message!)" + ")")
-        outputStream.write(message)
+        let log = LCLoggerLog(message: message, type: type, filePath: filePath, logType: .desctruct(getDeinitCount()))
+        outputStream.write(log.formattedMessage)
     }
     
     public func log(_ message: Any, type: String = "", filePath: String = #file) {
-        let place = filePath.getPlace(type: type)
-        let message = "\(currentTime) ===" + place.smallPrefix + " " + "\(message)" + " ==="
-        outputStream.write(message)
+        let log = LCLoggerLog(message: message, type: type, filePath: filePath)
+        outputStream.write(log.formattedMessage)
         guard enabled else { return }
-        let logs = LCLogger.logs.value + [message]
+        let logs = LCLogger.logs.value + [log]
         LCLogger.logs.send(logs)
     }
     
@@ -105,117 +100,5 @@ private struct OutputStream {
 #if DEBUG
         print(message)
 #endif
-    }
-}
-
-// MARK: - Place
-private struct Place {
-    let value: String
-    let type: String
-    
-    var rawValue: String { value + type }
-    var icon: String { Icon.allCases.first(where: { value.lowercased().contains($0.rawValue.lowercased()) } )?.icon ?? "===" }
-    
-    var prefix: String {
-        var length = icon.count + rawValue.count + 5
-        if icon == "===" { length -= 1 }
-        let spacesCount = max(50 - length, 1)
-        let text = String(format: " %@ %@%@===", icon, rawValue, String(repeating: " ", count: spacesCount))
-        return text
-    }
-    
-    var smallPrefix: String {
-        String(format: " %@ %@ ===", icon, rawValue)
-    }
-    
-    enum Icon: String, CaseIterable {
-        case diContainer
-        case tabBarController
-        case viewController
-        case overlayController
-        case navigationController
-        case rootView
-        case viewModel
-        case repository
-        case userSession
-        case session
-        case configuration
-        case customization
-        case keychain
-        case useCase
-        case textField
-        case factory
-        case coder
-        case manager
-        case otherView = "view"
-        case cell
-        case helper
-        case button
-        case database
-        case tabBar
-        case node
-        
-        var icon: String {
-            switch self {
-                case .diContainer: return "🫙"
-                case .tabBarController, .viewController, .overlayController: return "🎥"
-                case .tabBar: return "🗂️"
-                case .rootView: return "📺"
-                case .otherView: return "🏙️"
-                case .cell: return "🏙️"
-                case .viewModel: return "🧠"
-                case .session: return "💼"
-                case .configuration: return "🧾"
-                case .customization: return "👕"
-                case .keychain: return "🔐"
-                case .repository: return "🗄"
-                case .useCase: return "🎞"
-                case .textField: return "✍️"
-                case .userSession: return "🧔🏻‍♂️"
-                case .factory: return "🏭"
-                case .coder: return "👨‍💻"
-                case .navigationController: return "🧭"
-                case .manager: return "🤖"
-                case .helper: return "🙏"
-                case .button: return "⏺️"
-                case .database: return "📀"
-                case .node: return "🏙️"
-            }
-        }
-    }
-}
-
-// MARK: - String Extensions
-private extension String {
-    var lastPathComponent: String {
-        if #available(iOS 16.0, *) {
-            URL(filePath: self).lastPathComponent
-        } else {
-            URL(fileURLWithPath: self).lastPathComponent
-        }
-    }
-    
-    var deletingPathExtension: String {
-        return NSString(string: self).deletingPathExtension
-    }
-    
-    var fileName: String {
-        let parts = deletingPathExtension.components(separatedBy: ".")
-        guard !parts.isEmpty else { return self }
-        var string = ""
-        for (index, value) in parts.enumerated() {
-            guard let first = value.first else { continue }
-            if index == 0 {
-                string.append(value)
-            } else {
-                string.append(first.uppercased() + value.dropFirst())
-            }
-        }
-        return string
-    }
-    
-    func getPlace(type: String) -> Place {
-        let type = type.isEmpty ? "" : "(\(type))"
-        return Place(value: lastPathComponent.fileName, type: type)
     }
 }

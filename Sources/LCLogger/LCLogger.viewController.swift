@@ -13,8 +13,8 @@ class LCLoggerViewController: UITableViewController, UISearchBarDelegate {
 
     private var searchBar = UISearchBar()
 
-    @Published private var allItems: [String] = []
-    @Published private var items: [String] = []
+    @Published private var allItems: [LCLoggerLog] = []
+    @Published private var items: [LCLoggerLog] = []
     @Published private var searchText = ""
     
     private var shouldScrollToBottom = true
@@ -35,7 +35,7 @@ class LCLoggerViewController: UITableViewController, UISearchBarDelegate {
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: "cell", for: indexPath)
         guard indexPath.row < items.count else { return cell }
-        let item = items[indexPath.row]
+        let item = items[indexPath.row].formattedMessage
         let attributedString = NSMutableAttributedString(string: item, attributes: [.font : UIFont.systemFont(ofSize: 14)])
         if !searchText.isEmpty {
             let range = (item as NSString).range(of: searchText, options: .caseInsensitive)
@@ -51,7 +51,7 @@ class LCLoggerViewController: UITableViewController, UISearchBarDelegate {
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         tableView.deselectRow(at: indexPath, animated: true)
         guard indexPath.row < items.count else { return }
-        UIPasteboard.general.string = items[indexPath.row]
+        UIPasteboard.general.string = items[indexPath.row].formattedMessage
     }
     
     override func scrollViewDidScroll(_ scrollView: UIScrollView) {
@@ -77,7 +77,7 @@ private extension LCLoggerViewController {
             .CombineLatest($allItems, $searchText)
             .sink { [weak self] allItems, searchText in
                 guard let self else { return }
-                items = searchText.isEmpty ? allItems : allItems.filter { $0.lowercased().contains(searchText.lowercased()) }
+                items = searchText.isEmpty ? allItems : allItems.filter { $0.formattedMessage.lowercased().contains(searchText.lowercased()) }
             }
             .store(in: &subscriptions)
         
