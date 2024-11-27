@@ -96,6 +96,8 @@ private extension LCLoggerCell {
         titleLable.numberOfLines = 0
         subtitleLabel.numberOfLines = 0
         dateLabel.font = .systemFont(ofSize: 12)
+        dateLabel.setContentHuggingPriority(.required, for: .horizontal)
+        dateLabel.setContentCompressionResistancePriority(.required, for: .horizontal)
         stackView.spacing = 8
         stackView.axis = .horizontal
         stackView.alignment = .top
