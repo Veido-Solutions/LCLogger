@@ -33,18 +33,11 @@ class LCLoggerViewController: UITableViewController, UISearchBarDelegate {
     }
 
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        let cell = tableView.dequeueReusableCell(withIdentifier: "cell", for: indexPath)
+        guard let cell = tableView.dequeueReusableCell(withIdentifier: "cell", for: indexPath) as? LCLoggerCell else { return UITableViewCell() }
         guard indexPath.row < items.count else { return cell }
-        let item = items[indexPath.row].formattedMessage
-        let attributedString = NSMutableAttributedString(string: item, attributes: [.font : UIFont.systemFont(ofSize: 14)])
-        if !searchText.isEmpty {
-            let range = (item as NSString).range(of: searchText, options: .caseInsensitive)
-            if range.location != NSNotFound {
-                attributedString.addAttributes([.font: UIFont.boldSystemFont(ofSize: 14), .foregroundColor: UIColor.systemBlue], range: range)
-            }
-        }
-        cell.textLabel?.attributedText = attributedString
-        cell.textLabel?.numberOfLines = 0
+        let item = items[indexPath.row]
+        cell.data.send(item)
+        cell.searchText.send(searchText)
         return cell
     }
     
@@ -97,7 +90,7 @@ private extension LCLoggerViewController {
     }
     
     func setupUI() {
-        tableView.register(UITableViewCell.self, forCellReuseIdentifier: "cell")
+        tableView.register(LCLoggerCell.self, forCellReuseIdentifier: "cell")
         
         searchBar.delegate = self
         searchBar.placeholder = "Filter"
