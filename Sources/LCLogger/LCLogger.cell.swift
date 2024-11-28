@@ -13,6 +13,15 @@ final class LCLoggerCell: UITableViewCell {
     let data = PassthroughSubject<LCLoggerLog, Never>()
     let searchText = PassthroughSubject<String, Never>()
     
+    var onTap: AnyPublisher<Void, Never> {
+        onTapPublisher.eraseToAnyPublisher()
+    }
+    private let onTapPublisher = PassthroughSubject<Void, Never>()
+    var onLongPress: AnyPublisher<Void, Never> {
+        onLongPressPublisher.eraseToAnyPublisher()
+    }
+    private let onLongPressPublisher = PassthroughSubject<Void, Never>()
+    
     private let titleLable = UILabel()
     private let subtitleLabel = UILabel()
     private let dateLabel = UILabel()
@@ -20,6 +29,7 @@ final class LCLoggerCell: UITableViewCell {
     private let stackView = UIStackView()
     
     private var subscriptions = Set<AnyCancellable>()
+    var actionsSubscriptions = Set<AnyCancellable>()
     
     // MARK: - Initialization
     override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
@@ -32,6 +42,11 @@ final class LCLoggerCell: UITableViewCell {
     
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
+    }
+    
+    override func prepareForReuse() {
+        super.prepareForReuse()
+        actionsSubscriptions.removeAll()
     }
 }
 
@@ -74,6 +89,9 @@ private extension LCLoggerCell {
             }
             .assign(to: \.attributedText, on: subtitleLabel)
             .store(in: &subscriptions)
+        
+        let longPress = UILongPressGestureRecognizer(target: self, action: #selector(didLongPress(_:)))
+        addGestureRecognizer(longPress)
     }
     
     func constructHierarchy() {
@@ -103,5 +121,10 @@ private extension LCLoggerCell {
         stackView.alignment = .top
         titlesStackView.axis = .vertical
         titlesStackView.spacing = 4
+    }
+    
+    @objc func didLongPress(_ gesture: UILongPressGestureRecognizer) {
+        guard gesture.state == .began else { return }
+        onLongPressPublisher.send()
     }
 }

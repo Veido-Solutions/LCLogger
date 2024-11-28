@@ -38,6 +38,13 @@ class LCLoggerViewController: UITableViewController, UISearchBarDelegate {
         let item = items[indexPath.row]
         cell.data.send(item)
         cell.searchText.send(searchText)
+        cell.onLongPress
+            .sink { [weak self] in
+                guard let self else { return }
+                searchBar.text = item.place.smallPrefix
+                searchText = item.place.smallPrefix
+            }
+            .store(in: &cell.actionsSubscriptions)
         return cell
     }
     
@@ -63,7 +70,6 @@ private extension LCLoggerViewController {
     func bind() {
         LCLogger
             .logs
-            .throttle(for: .seconds(1), scheduler: DispatchQueue.main, latest: true)
             .assign(to: &$allItems)
         
         Publishers
@@ -75,6 +81,7 @@ private extension LCLoggerViewController {
             .store(in: &subscriptions)
         
         $items
+            .throttle(for: .seconds(1), scheduler: DispatchQueue.main, latest: true)
             .receive(on: DispatchQueue.main)
             .sink { [weak self] items in
                 guard let self else { return }
@@ -82,8 +89,8 @@ private extension LCLoggerViewController {
                 tableView.reloadData {
                     guard !self.items.isEmpty else { return }
                     guard self.shouldScrollToBottom else { return }
-                    let indexPath = IndexPath(row: self.items.count - 1, section: 0)
-                    self.tableView.scrollToRow(at: indexPath, at: .bottom, animated: true)
+                    guard let indexPath = self.tableView.indexPathForLastRow else { return }
+                    self.tableView.safeScrollToRow(at: indexPath, at: .bottom, animated: true)
                 }
             }
             .store(in: &subscriptions)
@@ -95,6 +102,7 @@ private extension LCLoggerViewController {
         searchBar.delegate = self
         searchBar.placeholder = "Filter"
         searchBar.showsCancelButton = true
+        searchBar.returnKeyType = .done
         navigationItem.titleView = searchBar
 
         let closeButton = UIBarButtonItem(title: "Close", style: .plain, target: self, action: #selector(closeTapped))
@@ -117,6 +125,11 @@ extension LCLoggerViewController: UISearchBarDelegate {
         shouldScrollToBottom = true
         searchBar.resignFirstResponder()
     }
+    
+    func searchBarSearchButtonClicked(_ searchBar: UISearchBar) {
+        shouldScrollToBottom = true
+        searchBar.resignFirstResponder()
+    }
 }
 
 private extension UITableView {
@@ -126,5 +139,28 @@ private extension UITableView {
         }, completion: { _ in
             completion()
         })
+    }
+    
+    var indexPathForLastRow: IndexPath? {
+        guard let lastSection else { return nil }
+        return indexPathForLastRow(inSection: lastSection)
+    }
+    
+    var lastSection: Int? {
+        numberOfSections > 0 ? numberOfSections - 1 : nil
+    }
+    
+    func indexPathForLastRow(inSection section: Int) -> IndexPath? {
+        guard numberOfSections > 0, section >= 0 else { return nil }
+        guard numberOfRows(inSection: section) > 0 else {
+            return IndexPath(row: 0, section: section)
+        }
+        return IndexPath(row: numberOfRows(inSection: section) - 1, section: section)
+    }
+    
+    func safeScrollToRow(at indexPath: IndexPath, at scrollPosition: UITableView.ScrollPosition, animated: Bool) {
+        guard indexPath.section < numberOfSections else { return }
+        guard indexPath.row < numberOfRows(inSection: indexPath.section) else { return }
+        scrollToRow(at: indexPath, at: scrollPosition, animated: animated)
     }
 }
