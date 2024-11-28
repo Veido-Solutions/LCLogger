@@ -9,7 +9,7 @@ import UIKit
 import Combine
 
 @available(iOS 14.0, *)
-class LCLoggerViewController: UITableViewController, UISearchBarDelegate {
+class LCLoggerViewController: UITableViewController {
 
     private var searchBar = UISearchBar()
 
@@ -85,7 +85,6 @@ private extension LCLoggerViewController {
             .receive(on: DispatchQueue.main)
             .sink { [weak self] items in
                 guard let self else { return }
-                guard self.shouldScrollToBottom else { return }
                 tableView.reloadData {
                     guard !self.items.isEmpty else { return }
                     guard self.shouldScrollToBottom else { return }
