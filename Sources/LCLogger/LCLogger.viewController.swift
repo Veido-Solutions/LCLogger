@@ -70,6 +70,7 @@ private extension LCLoggerViewController {
     func bind() {
         LCLogger
             .logs
+            .throttle(for: .seconds(1), scheduler: DispatchQueue.main, latest: true)
             .assign(to: &$allItems)
         
         Publishers
@@ -81,7 +82,6 @@ private extension LCLoggerViewController {
             .store(in: &subscriptions)
         
         $items
-            .throttle(for: .seconds(1), scheduler: DispatchQueue.main, latest: false)
             .receive(on: DispatchQueue.main)
             .sink { [weak self] items in
                 guard let self else { return }
