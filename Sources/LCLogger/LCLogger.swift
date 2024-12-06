@@ -46,18 +46,7 @@ public final class LCLogger {
         if let error = error as? LCLoggerErrorProtocol {
             errorMessage = error.errorDescription
         } else if let error = error as? DecodingError {
-            switch error {
-                case .typeMismatch(let any, let context):
-                    errorMessage = context.debugDescription
-                case .valueNotFound(let any, let context):
-                    errorMessage = context.debugDescription
-                case .keyNotFound(let codingKey, let context):
-                    errorMessage = context.debugDescription
-                case .dataCorrupted(let context):
-                    errorMessage = context.debugDescription
-                @unknown default:
-                    errorMessage = error.localizedDescription
-            }
+            errorMessage = error.debugDescription
         } else {
             errorMessage = error.localizedDescription
         }
@@ -119,5 +108,17 @@ private struct OutputStream {
 #if DEBUG
         print(message)
 #endif
+    }
+}
+
+private extension DecodingError {
+    var debugDescription: String {
+        switch self {
+            case .typeMismatch(let any, let context): context.debugDescription
+            case .valueNotFound(let any, let context): context.debugDescription
+            case .keyNotFound(let codingKey, let context): context.debugDescription
+            case .dataCorrupted(let context): context.debugDescription
+            @unknown default: ""
+        }
     }
 }
