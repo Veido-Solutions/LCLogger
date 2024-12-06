@@ -42,7 +42,26 @@ public final class LCLogger {
     }
     
     public func error(_ error: Error, type: String = "", filePath: String = #file) {
-        let message = "‼️ Error: \((error as? LCLoggerErrorProtocol)?.errorDescription ?? error.localizedDescription)"
+        let errorMessage: String
+        if let error = error as? LCLoggerErrorProtocol {
+            errorMessage = error.errorDescription
+        } else if let error = error as? DecodingError {
+            switch error {
+                case .typeMismatch(let any, let context):
+                    errorMessage = context.debugDescription
+                case .valueNotFound(let any, let context):
+                    errorMessage = context.debugDescription
+                case .keyNotFound(let codingKey, let context):
+                    errorMessage = context.debugDescription
+                case .dataCorrupted(let context):
+                    errorMessage = context.debugDescription
+                @unknown default:
+                    errorMessage = error.localizedDescription
+            }
+        } else {
+            errorMessage = error.localizedDescription
+        }
+        let message = "‼️ Error: \(errorMessage)"
         log(message, type: type, filePath: filePath)
     }
     
