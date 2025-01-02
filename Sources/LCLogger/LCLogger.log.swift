@@ -26,7 +26,7 @@ internal struct LCLoggerLog {
     }
     
     var formattedMessage: String {
-        let m = message.isEmpty ? "" : " (\(message)"
+        let m = message.isEmpty ? "" : " (\(message))"
         switch logType {
             case .debug:
                 return "\(date) ===\(place.smallPrefix) \(message) ==="
