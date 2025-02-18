@@ -51,7 +51,7 @@ public final class LCLogger {
             errorMessage = error.localizedDescription
         }
         let message = "‼️ Error: \(errorMessage)"
-        log(message, type: type, filePath: filePath)
+        log(message, type: type, filePath: filePath, line: line)
     }
     
     @available(iOS 14.0, *)
