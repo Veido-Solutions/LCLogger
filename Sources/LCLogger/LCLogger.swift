@@ -23,25 +23,25 @@ public final class LCLogger {
         )
     }
     
-    public func construct(_ message: Any? = nil, type: String = "", filePath: String = #file) {
-        let log = LCLoggerLog(message: message, type: type, filePath: filePath, logType: .construct(getInitCount()))
+    public func construct(_ message: Any? = nil, type: String = "", filePath: String = #file, line: Int = #line) {
+        let log = LCLoggerLog(message: message, type: type, filePath: filePath, line: line, logType: .construct(getInitCount()))
         outputStream.write(log.formattedMessage)
     }
     
-    public func destruct(_ message: Any? = nil, type: String = "", filePath: String = #file) {
-        let log = LCLoggerLog(message: message, type: type, filePath: filePath, logType: .desctruct(getDeinitCount()))
+    public func destruct(_ message: Any? = nil, type: String = "", filePath: String = #file, line: Int = #line) {
+        let log = LCLoggerLog(message: message, type: type, filePath: filePath, line: line, logType: .desctruct(getDeinitCount()))
         outputStream.write(log.formattedMessage)
     }
     
-    public func log(_ message: Any, type: String = "", filePath: String = #file) {
-        let log = LCLoggerLog(message: message, type: type, filePath: filePath)
+    public func log(_ message: Any, type: String = "", filePath: String = #file, line: Int = #line) {
+        let log = LCLoggerLog(message: message, type: type, filePath: filePath, line: line)
         outputStream.write(log.formattedMessage)
         guard enabled else { return }
         let logs = LCLogger.logs.value + [log]
         LCLogger.logs.send(logs)
     }
     
-    public func error(_ error: Error, type: String = "", filePath: String = #file) {
+    public func error(_ error: Error, type: String = "", filePath: String = #file, line: Int = #line) {
         let errorMessage: String
         if let error = error as? LCLoggerErrorProtocol {
             errorMessage = error.errorDescription

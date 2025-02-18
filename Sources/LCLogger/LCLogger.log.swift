@@ -16,9 +16,9 @@ internal struct LCLoggerLog {
     let date: String
     private let logType: LogType
     
-    init(message: Any?, type: String, filePath: String, logType: LogType = .debug) {
+    init(message: Any?, type: String, filePath: String, line: Int, logType: LogType = .debug) {
         self.message = message == nil ? "" : "\(message!)"
-        self.place = filePath.getPlace(type: type)
+        self.place = filePath.getPlace(type: type, line: line)
         let formatter = DateFormatter()
         formatter.dateFormat = "HH:mm:ss"
         self.date = Date().formatted
@@ -41,6 +41,7 @@ internal struct LCLoggerLog {
 internal struct Place {
     let value: String
     let type: String
+    let line: Int
     
     var rawValue: String { value + type }
     var icon: String { Icon.allCases.first(where: { value.lowercased().contains($0.rawValue.lowercased()) } )?.icon ?? "===" }
@@ -54,7 +55,7 @@ internal struct Place {
     }
     
     var smallPrefix: String {
-        String(format: " %@ %@ ===", icon, rawValue)
+        String(format: " %@ %@:%i ===", icon, rawValue, line)
     }
     
     enum Icon: String, CaseIterable {
@@ -143,9 +144,9 @@ private extension String {
         return string
     }
     
-    func getPlace(type: String) -> Place {
+    func getPlace(type: String, line: Int) -> Place {
         let type = type.isEmpty ? "" : "(\(type))"
-        return Place(value: lastPathComponent.fileName, type: type)
+        return Place(value: lastPathComponent.fileName, type: type, line: line)
     }
 }
 
