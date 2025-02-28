@@ -27,6 +27,7 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         lcLogger.log("Test")
         lcLogger.log(1)
         lcLogger.log(2)
+        lcLogger.spacer()
         lcLogger.destruct()
         
         func randomString(length: Int) -> String {

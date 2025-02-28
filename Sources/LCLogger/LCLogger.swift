@@ -54,6 +54,11 @@ public final class LCLogger {
         log(message, type: type, filePath: filePath, line: line)
     }
     
+    public func spacer(filePath: String = #file, line: Int = #line) {
+        let log = LCLoggerLog(message: "-=-=-=-=-=-=-=-=-=-=-=-=-=-=-", type: "", filePath: filePath, line: line)
+        outputStream.write(log.formattedMessage)
+    }
+    
     @available(iOS 14.0, *)
     public func showDebug(on viewController: UIViewController?) {
         guard let viewController else { return }
