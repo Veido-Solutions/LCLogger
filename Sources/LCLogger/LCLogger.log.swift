@@ -84,6 +84,7 @@ internal struct Place {
         case database
         case tabBar
         case node
+        case engine
         
         var icon: String {
             switch self {
@@ -110,6 +111,7 @@ internal struct Place {
                 case .button: return "⏺️"
                 case .database: return "📀"
                 case .node: return "🏙️"
+                case .engine: return "🔧"
             }
         }
     }
