@@ -41,6 +41,11 @@ public final class LCLogger {
         LCLogger.logs.send(logs)
     }
     
+    public func warning(_ message: Any, type: String = "", filePath: String = #file, line: Int = #line) {
+        let message = "⚠️ Warning: \(message)"
+        log(message, type: type, filePath: filePath, line: line)
+    }
+    
     public func error(_ error: Error, type: String = "", filePath: String = #file, line: Int = #line) {
         let errorMessage: String
         if let error = error as? LCLoggerErrorProtocol {
