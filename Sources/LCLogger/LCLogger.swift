@@ -2,7 +2,7 @@ import UIKit
 import Combine
 
 public protocol LCLoggerErrorProtocol {
-    var errorDescription: String { get }
+    var errorMessage: String { get }
 }
 
 public final class LCLogger {
@@ -49,7 +49,7 @@ public final class LCLogger {
     public func error(_ error: Error, type: String = "", filePath: String = #file, line: Int = #line) {
         let errorMessage: String
         if let error = error as? LCLoggerErrorProtocol {
-            errorMessage = error.errorDescription
+            errorMessage = error.errorMessage
         } else if let error = error as? DecodingError {
             errorMessage = error.debugDescription
         } else {
